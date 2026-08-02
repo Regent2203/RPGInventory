@@ -1,0 +1,56 @@
+## ====== .NET / C# ======
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Log]/
+
+## ====== SQLite ======
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+## ====== IDE ======
+
+# JetBrains Rider / Resharper
+.idea/
+*.sln.iml
+.shadow/
+
+# Visual Studio
+.vs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# Visual Studio Code
+.vscode/
+!.vscode/extensions.json
+.history/
+
+## ====== Secrets ======
+*.secrets.json
+.env
+
+## ====== Packages ======
+.nuget/
+packages/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+
+## ====== Docker ======
+.dockerignore
+docker-compose.override.yml
+
+## ====== OS ======
+.DS_Store
+Thumbs.db

@@ -1,14 +1,16 @@
 using Microsoft.EntityFrameworkCore;
+using RPGInventory.Application;
+using RPGInventory.Infrastructure;
 using RPGInventory.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(connectionString));
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddApplicationServices();
 
 var app = builder.Build();
 
@@ -28,6 +30,8 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
 
+        //sqlite tip: to ensure db is actually created on disk
+        await context.Database.OpenConnectionAsync();
         await context.Database.MigrateAsync();
 
         await ApplicationDbContextSeed.SeedInitialDataAsync(context);
@@ -35,7 +39,7 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Произошла ошибка при инициализации или миграции базы данных.");
+        logger.LogError(ex, "Error while creating or migrating DB.");
     }
 }
 

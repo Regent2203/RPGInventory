@@ -1,6 +1,0 @@
-@RPGInventory.WebApi_HostAddress = http://localhost:5109
-
-GET {{RPGInventory.WebApi_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

@@ -27,4 +27,18 @@ public class PlayersController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    [HttpGet("{id:guid}/profile")]
+    public async Task<ActionResult<PlayerProfileDto>> GetProfile(Guid id)
+    {
+        try
+        {
+            var profile = await _playerService.GetProfileAsync(id);
+            return Ok(profile);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
 }

@@ -17,6 +17,36 @@ namespace RPGInventory.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.29");
 
+            modelBuilder.Entity("RPGInventory.Domain.Entities.InventoryHistory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OperationType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("QuantityChanged")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("PlayerId");
+
+                    b.ToTable("InventoryHistories");
+                });
+
             modelBuilder.Entity("RPGInventory.Domain.Entities.InventoryItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -123,6 +153,25 @@ namespace RPGInventory.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("RecipeIngredients");
+                });
+
+            modelBuilder.Entity("RPGInventory.Domain.Entities.InventoryHistory", b =>
+                {
+                    b.HasOne("RPGInventory.Domain.Entities.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RPGInventory.Domain.Entities.Player", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Player");
                 });
 
             modelBuilder.Entity("RPGInventory.Domain.Entities.InventoryItem", b =>

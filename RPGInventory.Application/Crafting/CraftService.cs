@@ -75,6 +75,29 @@ public class CraftService
             _context.InventoryItems.Add(newInventoryItem);
         }
 
+        var historyLogs = new List<InventoryHistory>();
+
+        foreach (var ingredient in recipe.Ingredients)
+        {
+            historyLogs.Add(new InventoryHistory
+            {
+                PlayerId = request.PlayerId,
+                ItemId = ingredient.IngredientItemId,
+                QuantityChanged = -ingredient.Quantity,
+                OperationType = InventoryOperationType.CraftConsume,
+                Timestamp = DateTime.UtcNow
+            });
+        }
+        historyLogs.Add(new InventoryHistory
+        {
+            PlayerId = request.PlayerId,
+            ItemId = recipe.ResultItemId,
+            QuantityChanged = recipe.ResultQuantity,
+            OperationType = InventoryOperationType.CraftProduce,
+            Timestamp = DateTime.UtcNow
+        });
+        _context.InventoryHistories.AddRange(historyLogs);
+
         await _context.SaveChangesAsync(cancellationToken);
 
         var updatedInventory = await _context.InventoryItems

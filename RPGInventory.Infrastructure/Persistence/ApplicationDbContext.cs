@@ -15,6 +15,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
     public DbSet<Recipe> Recipes => Set<Recipe>();
     public DbSet<RecipeIngredient> RecipeIngredients => Set<RecipeIngredient>();
+    public DbSet<InventoryHistory> InventoryHistories => Set<InventoryHistory>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -60,6 +61,13 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
                 .WithMany()
                 .HasForeignKey(d => d.ResultItemId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<InventoryHistory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(d => d.Player).WithMany().HasForeignKey(d => d.PlayerId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(d => d.Item).WithMany().HasForeignKey(d => d.ItemId).OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

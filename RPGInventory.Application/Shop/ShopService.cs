@@ -58,6 +58,13 @@ public class ShopService
             _context.InventoryItems.Add(inventoryItem);
         }
 
+        var historyLogs = new List<InventoryHistory>
+        {
+            new() { PlayerId = request.PlayerId, ItemId = GoldItemId, QuantityChanged = -totalCost, OperationType = InventoryOperationType.Purchase, Timestamp = DateTime.UtcNow },
+            new() { PlayerId = request.PlayerId, ItemId = request.ItemId, QuantityChanged = request.Quantity, OperationType = InventoryOperationType.Purchase, Timestamp = DateTime.UtcNow }
+        };
+        _context.InventoryHistories.AddRange(historyLogs);
+
         await _context.SaveChangesAsync(cancellationToken);
 
         return new TradeResponse
@@ -68,7 +75,6 @@ public class ShopService
         };
     }
 
-    // 💰 ПРОДАЖА ПРЕДМЕТА ТОРГОВЦУ
     public async Task<TradeResponse> SellItemAsync(TradeRequest request, CancellationToken cancellationToken = default)
     {
         if (request.Quantity <= 0)
@@ -115,6 +121,13 @@ public class ShopService
             };
             _context.InventoryItems.Add(goldItem);
         }
+
+        var historyLogs = new List<InventoryHistory>
+        {
+            new() { PlayerId = request.PlayerId, ItemId = GoldItemId, QuantityChanged = totalPayout, OperationType = InventoryOperationType.Purchase, Timestamp = DateTime.UtcNow },
+            new() { PlayerId = request.PlayerId, ItemId = request.ItemId, QuantityChanged = -request.Quantity, OperationType = InventoryOperationType.Purchase, Timestamp = DateTime.UtcNow }
+        };
+        _context.InventoryHistories.AddRange(historyLogs);
 
         await _context.SaveChangesAsync(cancellationToken);
 

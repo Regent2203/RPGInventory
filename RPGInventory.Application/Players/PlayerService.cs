@@ -37,6 +37,17 @@ public class PlayerService
 
         _context.InventoryItems.AddRange(startingResources);
 
+        var historyLogs = startingResources.Select(resource => new InventoryHistory
+        {
+            PlayerId = newPlayer.Id,
+            ItemId = resource.ItemId,
+            QuantityChanged = resource.Quantity,
+            OperationType = InventoryOperationType.Registration,
+            Timestamp = DateTime.UtcNow
+        });
+
+        _context.InventoryHistories.AddRange(historyLogs);
+
         await _context.SaveChangesAsync(cancellationToken);
 
         return new RegisterPlayerResponse

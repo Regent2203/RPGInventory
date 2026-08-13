@@ -41,4 +41,18 @@ public class PlayersController : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
+
+    [HttpGet("{id:guid}/history")]
+    public async Task<ActionResult<List<InventoryHistoryDto>>> GetHistory(Guid id)
+    {
+        try
+        {
+            var history = await _playerService.GetHistoryAsync(id);
+            return Ok(history);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
 }

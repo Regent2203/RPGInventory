@@ -84,4 +84,31 @@ public class PlayerService
             }).ToList()
         };
     }
+
+    public async Task<List<InventoryHistoryDto>> GetHistoryAsync(Guid playerId, CancellationToken cancellationToken = default)
+    {
+        var playerExists = await _context.Players.AnyAsync(p => p.Id == playerId, cancellationToken);
+        if (!playerExists)
+        {
+            throw new KeyNotFoundException($"Player not found for this ID: {playerId}.");
+        }
+
+        var history = await _context.InventoryHistories
+            .Where(h => h.PlayerId == playerId)
+            .Include(h => h.Item)
+            .OrderByDescending(h => h.Timestamp)
+            .Select(h => new InventoryHistoryDto
+            {
+                Id = h.Id,
+                ItemId = h.ItemId,
+                ItemName = h.Item != null ? h.Item.Name : "Unknown itemName",
+                ItemType = h.Item != null ? h.Item.Type.ToString() : "Unknown itemType",
+                QuantityChanged = h.QuantityChanged,                
+                Operation = h.OperationType.ToString(),
+                Timestamp = h.Timestamp
+            })
+        .ToListAsync(cancellationToken);
+
+        return history;
+    }
 }

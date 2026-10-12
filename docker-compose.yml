@@ -1,0 +1,16 @@
+services:
+  rpg-backend:
+    container_name: rpg_inventory_backend
+    build:
+      context: .
+      dockerfile: RPGInventory.WebApi/Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - rpg_db_data:/app/data
+    restart: always
+
+volumes:
+  rpg_db_data:

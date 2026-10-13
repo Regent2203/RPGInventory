@@ -10,6 +10,12 @@ public class TradeRequest
 public class TradeResponse
 {
     public string Message { get; set; } = string.Empty;
-    public int GoldBalance { get; set; }
-    public int ItemInventoryQuantity { get; set; }
+    public List<UpdatedItemDto> UpdatedItems { get; set; } = new();
+}
+
+public class UpdatedItemDto
+{
+    public int ItemId { get; set; }
+    public string ItemName { get; set; } = string.Empty;
+    public int NewQuantity { get; set; }
 }

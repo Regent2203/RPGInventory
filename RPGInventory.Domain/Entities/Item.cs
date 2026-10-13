@@ -13,5 +13,6 @@ public class Item
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public ItemType Type { get; set; }
-    public int BasePrice { get; set; }
+
+    public ICollection<ItemPrice> Prices { get; set; } = new List<ItemPrice>();
 }

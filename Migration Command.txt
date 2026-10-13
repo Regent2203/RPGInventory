@@ -1,0 +1,1 @@
+Add-Migration <Name> -Project RPGInventory.Infrastructure -Start RPGInventory.WebApi

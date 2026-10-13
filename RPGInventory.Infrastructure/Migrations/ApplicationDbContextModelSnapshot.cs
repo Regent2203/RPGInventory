@@ -78,9 +78,6 @@ namespace RPGInventory.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("BasePrice")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -91,6 +88,31 @@ namespace RPGInventory.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Items");
+                });
+
+            modelBuilder.Entity("RPGInventory.Domain.Entities.ItemPrice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CurrencyItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TargetItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CurrencyItemId");
+
+                    b.HasIndex("TargetItemId", "CurrencyItemId")
+                        .IsUnique();
+
+                    b.ToTable("ItemPrices");
                 });
 
             modelBuilder.Entity("RPGInventory.Domain.Entities.Player", b =>
@@ -193,6 +215,25 @@ namespace RPGInventory.Infrastructure.Migrations
                     b.Navigation("Player");
                 });
 
+            modelBuilder.Entity("RPGInventory.Domain.Entities.ItemPrice", b =>
+                {
+                    b.HasOne("RPGInventory.Domain.Entities.Item", "CurrencyItem")
+                        .WithMany()
+                        .HasForeignKey("CurrencyItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RPGInventory.Domain.Entities.Item", "TargetItem")
+                        .WithMany("Prices")
+                        .HasForeignKey("TargetItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CurrencyItem");
+
+                    b.Navigation("TargetItem");
+                });
+
             modelBuilder.Entity("RPGInventory.Domain.Entities.Recipe", b =>
                 {
                     b.HasOne("RPGInventory.Domain.Entities.Item", "ResultItem")
@@ -221,6 +262,11 @@ namespace RPGInventory.Infrastructure.Migrations
                     b.Navigation("IngredientItem");
 
                     b.Navigation("Recipe");
+                });
+
+            modelBuilder.Entity("RPGInventory.Domain.Entities.Item", b =>
+                {
+                    b.Navigation("Prices");
                 });
 
             modelBuilder.Entity("RPGInventory.Domain.Entities.Player", b =>

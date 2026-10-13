@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RPGInventory.Application.Common.Interfaces;
-using RPGInventory.Domain.Definitions;
 using RPGInventory.Domain.Entities;
 
 namespace RPGInventory.Application.Shop;
@@ -8,7 +7,6 @@ namespace RPGInventory.Application.Shop;
 public class ShopService
 {
     private readonly IApplicationDbContext _context;
-    private static int GoldItemId => GameItems.GoldId;
 
     public ShopService(IApplicationDbContext context)
     {
@@ -20,59 +18,107 @@ public class ShopService
         if (request.Quantity <= 0)
             throw new ArgumentException("Quantity must be more than zero.");
 
-        var item = await _context.Items.FindAsync(new object[] { request.ItemId }, cancellationToken);
-        if (item == null)
+        var itemToBuy = await _context.Items
+            .Include(i => i.Prices)
+            .ThenInclude(p => p.CurrencyItem)
+            .FirstOrDefaultAsync(i => i.Id == request.ItemId, cancellationToken);
+
+        if (itemToBuy == null)
             throw new ArgumentException("Item not found.");
 
-        if (item.Id == GoldItemId)
-            throw new InvalidOperationException("Cannot buy gold for gold.");
+        if (itemToBuy.Prices.Count == 0)
+            throw new InvalidOperationException("This item cannot be bought (price doesn't exist).");
 
         var playerInventory = await _context.InventoryItems
             .Where(ii => ii.PlayerId == request.PlayerId)
+            .Include(ii => ii.Item)
             .ToListAsync(cancellationToken);
 
-        var goldItem = playerInventory.FirstOrDefault(ii => ii.ItemId == GoldItemId);
-        var currentGold = goldItem?.Quantity ?? 0;
-        var totalCost = item.BasePrice * request.Quantity;
-
-        if (currentGold < totalCost)
-            throw new InvalidOperationException($"Not enough gold. Required: {totalCost}, currently: {currentGold}.");
-
-        goldItem!.Quantity -= totalCost;
-        if (goldItem.Quantity == 0) 
-            _context.InventoryItems.Remove(goldItem);
-
-        var inventoryItem = playerInventory.FirstOrDefault(ii => ii.ItemId == item.Id);
-        if (inventoryItem != null)
+        foreach (var price in itemToBuy.Prices)
         {
-            inventoryItem.Quantity += request.Quantity;
+            int totalRequired = price.Quantity * request.Quantity;
+            var playerCurrency = playerInventory.FirstOrDefault(ii => ii.ItemId == price.CurrencyItemId);
+            var currentAmount = playerCurrency?.Quantity ?? 0;
+
+            if (currentAmount < totalRequired)
+            {
+                var currencyName = price.CurrencyItem?.Name ?? $"[ItemId = {price.CurrencyItemId}]";
+                throw new InvalidOperationException($"Not enough {currencyName} for buying {itemToBuy.Name}. Required: {totalRequired}, currently: {currentAmount}.");
+            }
+        }
+
+        var historyLogs = new List<InventoryHistory>();
+        var updatedItemsDto = new List<UpdatedItemDto>();
+
+        foreach (var price in itemToBuy.Prices)
+        {
+            int totalRequired = price.Quantity * request.Quantity;
+            var playerCurrency = playerInventory.First(ii => ii.ItemId == price.CurrencyItemId);
+
+            playerCurrency.Quantity -= totalRequired;
+
+            historyLogs.Add(new InventoryHistory
+            {
+                PlayerId = request.PlayerId,
+                ItemId = price.CurrencyItemId,
+                QuantityChanged = -totalRequired,
+                OperationType = InventoryOperationType.Purchase,
+                Timestamp = DateTime.UtcNow
+            });
+
+            updatedItemsDto.Add(new UpdatedItemDto
+            {
+                ItemId = price.CurrencyItemId,
+                ItemName = playerCurrency.Item?.Name ?? $"[ItemId = {price.CurrencyItemId}]",
+                NewQuantity = playerCurrency.Quantity
+            });
+
+            if (playerCurrency.Quantity == 0)
+            {
+                _context.InventoryItems.Remove(playerCurrency);
+            }
+        }
+
+        var itemToBuyInInventory = playerInventory.FirstOrDefault(ii => ii.ItemId == itemToBuy.Id);
+        if (itemToBuyInInventory != null)
+        {
+            itemToBuyInInventory.Quantity += request.Quantity;
         }
         else
         {
-            inventoryItem = new InventoryItem
+            itemToBuyInInventory = new InventoryItem
             {
                 Id = Guid.NewGuid(),
                 PlayerId = request.PlayerId,
-                ItemId = item.Id,
+                ItemId = itemToBuy.Id,
                 Quantity = request.Quantity
             };
-            _context.InventoryItems.Add(inventoryItem);
+            _context.InventoryItems.Add(itemToBuyInInventory);
         }
 
-        var historyLogs = new List<InventoryHistory>
+        historyLogs.Add(new InventoryHistory
         {
-            new() { PlayerId = request.PlayerId, ItemId = GoldItemId, QuantityChanged = -totalCost, OperationType = InventoryOperationType.Purchase, Timestamp = DateTime.UtcNow },
-            new() { PlayerId = request.PlayerId, ItemId = request.ItemId, QuantityChanged = request.Quantity, OperationType = InventoryOperationType.Purchase, Timestamp = DateTime.UtcNow }
-        };
-        _context.InventoryHistories.AddRange(historyLogs);
+            PlayerId = request.PlayerId,
+            ItemId = itemToBuy.Id,
+            QuantityChanged = request.Quantity,
+            OperationType = InventoryOperationType.Purchase,
+            Timestamp = DateTime.UtcNow
+        });
 
+        _context.InventoryHistories.AddRange(historyLogs);
         await _context.SaveChangesAsync(cancellationToken);
+
+        updatedItemsDto.Add(new UpdatedItemDto
+        {
+            ItemId = itemToBuy.Id,
+            ItemName = itemToBuy.Name,
+            NewQuantity = itemToBuyInInventory.Quantity
+        });
 
         return new TradeResponse
         {
-            Message = $"Buy successful. Item: {item.Name}, quantity: {request.Quantity}",
-            GoldBalance = goldItem.Quantity,
-            ItemInventoryQuantity = inventoryItem.Quantity
+            Message = $"You have successfully bought {request.Quantity} {itemToBuy.Name}.",
+            UpdatedItems = updatedItemsDto
         };
     }
 
@@ -81,62 +127,103 @@ public class ShopService
         if (request.Quantity <= 0)
             throw new ArgumentException("Quantity must be more than zero.");
 
-        if (request.ItemId == GoldItemId)
-            throw new InvalidOperationException("Cannot sell gold for gold.");
-
         var playerInventory = await _context.InventoryItems
             .Where(ii => ii.PlayerId == request.PlayerId)
             .Include(ii => ii.Item)
             .ToListAsync(cancellationToken);
 
-        var inventoryItem = playerInventory.FirstOrDefault(ii => ii.ItemId == request.ItemId);
-
-        if (inventoryItem == null || inventoryItem.Quantity < request.Quantity)
+        var itemToSellInInventory = playerInventory.FirstOrDefault(ii => ii.ItemId == request.ItemId);
+        if (itemToSellInInventory == null || itemToSellInInventory.Quantity < request.Quantity)
         {
-            throw new InvalidOperationException("Not enough items for sell.");
+            throw new InvalidOperationException($"Not enough items in inventory for selling.");
         }
 
-        inventoryItem.Quantity -= request.Quantity;
-        var remainingItems = inventoryItem.Quantity;
+        var itemToSell = await _context.Items
+            .Include(i => i.Prices)
+            .ThenInclude(p => p.CurrencyItem)
+            .FirstOrDefaultAsync(i => i.Id == request.ItemId, cancellationToken);
 
-        if (inventoryItem.Quantity == 0)
+        if (itemToSell == null || itemToSell.Prices.Count == 0)
         {
-            _context.InventoryItems.Remove(inventoryItem);
+            throw new InvalidOperationException("This item cannot be sold (price doesn't exist).");
         }
 
-        var totalPayout = inventoryItem.Item!.BasePrice * request.Quantity;
-        var goldItem = playerInventory.FirstOrDefault(ii => ii.ItemId == GoldItemId);
+        var historyLogs = new List<InventoryHistory>();
+        var updatedItemsDto = new List<UpdatedItemDto>();
 
-        if (goldItem != null)
+        itemToSellInInventory.Quantity -= request.Quantity;
+        int remainingItemsCount = itemToSellInInventory.Quantity;
+
+        updatedItemsDto.Add(new UpdatedItemDto
         {
-            goldItem.Quantity += totalPayout;
+            ItemId = itemToSell.Id,
+            ItemName = itemToSell.Name,
+            NewQuantity = remainingItemsCount
+        });
+
+        historyLogs.Add(new InventoryHistory
+        {
+            PlayerId = request.PlayerId,
+            ItemId = itemToSell.Id,
+            QuantityChanged = -request.Quantity,
+            OperationType = InventoryOperationType.Sale,
+            Timestamp = DateTime.UtcNow
+        });
+
+        if (itemToSellInInventory.Quantity == 0)
+        {
+            _context.InventoryItems.Remove(itemToSellInInventory);
         }
-        else
+
+        foreach (var price in itemToSell.Prices)
         {
-            goldItem = new InventoryItem
+            int totalPayout = price.Quantity * request.Quantity;
+
+            var currencyInInventory = playerInventory.FirstOrDefault(ii => ii.ItemId == price.CurrencyItemId);
+
+            if (currencyInInventory != null)
             {
-                Id = Guid.NewGuid(),
+                currencyInInventory.Quantity += totalPayout;
+            }
+            else
+            {
+                currencyInInventory = new InventoryItem
+                {
+                    Id = Guid.NewGuid(),
+                    PlayerId = request.PlayerId,
+                    ItemId = price.CurrencyItemId,
+                    Quantity = totalPayout
+                };
+                _context.InventoryItems.Add(currencyInInventory);
+
+                //currencyInInventory.Item = price.CurrencyItem;
+            }
+
+            historyLogs.Add(new InventoryHistory
+            {
                 PlayerId = request.PlayerId,
-                ItemId = GoldItemId,
-                Quantity = totalPayout
-            };
-            _context.InventoryItems.Add(goldItem);
+                ItemId = price.CurrencyItemId,
+                QuantityChanged = totalPayout,
+                OperationType = InventoryOperationType.Sale,
+                Timestamp = DateTime.UtcNow
+            });
+
+            updatedItemsDto.Add(new UpdatedItemDto
+            {
+                ItemId = price.CurrencyItemId,
+                ItemName = price.CurrencyItem?.Name ?? $"[ItemId = {price.CurrencyItemId}]",
+                NewQuantity = currencyInInventory.Quantity
+            });
         }
 
-        var historyLogs = new List<InventoryHistory>
-        {
-            new() { PlayerId = request.PlayerId, ItemId = GoldItemId, QuantityChanged = totalPayout, OperationType = InventoryOperationType.Purchase, Timestamp = DateTime.UtcNow },
-            new() { PlayerId = request.PlayerId, ItemId = request.ItemId, QuantityChanged = -request.Quantity, OperationType = InventoryOperationType.Purchase, Timestamp = DateTime.UtcNow }
-        };
         _context.InventoryHistories.AddRange(historyLogs);
-
         await _context.SaveChangesAsync(cancellationToken);
 
         return new TradeResponse
         {
-            Message = $"Sell successful. Item: {inventoryItem.Item.Name}, quantity: {request.Quantity}",
-            GoldBalance = goldItem.Quantity,
-            ItemInventoryQuantity = remainingItems
+            Message = $"You have successfully sold {request.Quantity} {itemToSell.Name}.",
+            UpdatedItems = updatedItemsDto
         };
     }
+
 }

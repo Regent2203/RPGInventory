@@ -12,6 +12,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<Player> Players => Set<Player>();
     public DbSet<Item> Items => Set<Item>();
+    public DbSet<ItemPrice> ItemPrices => Set<ItemPrice>();
     public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
     public DbSet<Recipe> Recipes => Set<Recipe>();
     public DbSet<RecipeIngredient> RecipeIngredients => Set<RecipeIngredient>();
@@ -20,6 +21,23 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<ItemPrice>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.HasIndex(e => new { e.TargetItemId, e.CurrencyItemId }).IsUnique();
+
+            entity.HasOne(d => d.TargetItem)
+                .WithMany(p => p.Prices)
+                .HasForeignKey(d => d.TargetItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.CurrencyItem)
+                .WithMany()
+                .HasForeignKey(d => d.CurrencyItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
 
         modelBuilder.Entity<InventoryItem>(entity =>
         {

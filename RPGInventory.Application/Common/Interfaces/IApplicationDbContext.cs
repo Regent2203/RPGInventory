@@ -7,6 +7,7 @@ public interface IApplicationDbContext
 {
     DbSet<Player> Players { get; }
     DbSet<Item> Items { get; }
+    DbSet<ItemPrice> ItemPrices { get; }
     DbSet<InventoryItem> InventoryItems { get; }
     DbSet<Recipe> Recipes { get; }
     DbSet<RecipeIngredient> RecipeIngredients { get; }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RPGInventory.Application.Common.Interfaces;
+using RPGInventory.Domain.Definitions;
 using RPGInventory.Domain.Entities;
 
 namespace RPGInventory.Application.Shop;
@@ -7,7 +8,7 @@ namespace RPGInventory.Application.Shop;
 public class ShopService
 {
     private readonly IApplicationDbContext _context;
-    private const int GoldItemId = 1; //const from DB seed
+    private static int GoldItemId => GameItems.GoldId;
 
     public ShopService(IApplicationDbContext context)
     {

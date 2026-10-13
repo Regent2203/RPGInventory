@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.37502.11 d17.14
+VisualStudioVersion = 17.14.37502.11
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RPGInventory.Domain", "RPGInventory.Domain\RPGInventory.Domain.csproj", "{20FC2A9C-F112-40B3-AACA-A02528394DC7}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RPGInventory.Infrastructure", "RPGInventory.Infrastructure\RPGInventory.Infrastructure.csproj", "{469E1AED-C4E2-479A-B124-4733E4ACE41D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RPGInventory.WebApi", "RPGInventory.WebApi\RPGInventory.WebApi.csproj", "{2AAC6650-BA81-41EA-9BDB-8FFAFF3836EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RPGInventory.Application.UnitTests", "RPGInventory.Application.UnitTests\RPGInventory.Application.UnitTests.csproj", "{4CF827C6-1AC7-442A-8D83-36CF0851A573}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{2AAC6650-BA81-41EA-9BDB-8FFAFF3836EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2AAC6650-BA81-41EA-9BDB-8FFAFF3836EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2AAC6650-BA81-41EA-9BDB-8FFAFF3836EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CF827C6-1AC7-442A-8D83-36CF0851A573}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CF827C6-1AC7-442A-8D83-36CF0851A573}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CF827C6-1AC7-442A-8D83-36CF0851A573}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CF827C6-1AC7-442A-8D83-36CF0851A573}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -67,7 +67,7 @@ public class PlayerService
 
         if (player == null)
         {
-            throw new KeyNotFoundException($"Player not found for this ID: {playerId}.");
+            throw new KeyNotFoundException($"Player not found.");
         }
 
         return new PlayerProfileDto
@@ -78,8 +78,8 @@ public class PlayerService
             Inventory = player.InventoryItems.Select(ii => new PlayerInventoryItemDto
             {
                 ItemId = ii.ItemId,
-                ItemName = ii.Item?.Name ?? "Unknown itemName",
-                ItemType = ii.Item?.Type.ToString() ?? "Unknown itemType",
+                ItemName = ii.Item?.Name ?? string.Empty,
+                ItemType = ii.Item?.Type.ToString() ?? string.Empty,
                 Quantity = ii.Quantity
             }).ToList()
         };
@@ -90,7 +90,7 @@ public class PlayerService
         var playerExists = await _context.Players.AnyAsync(p => p.Id == playerId, cancellationToken);
         if (!playerExists)
         {
-            throw new KeyNotFoundException($"Player not found for this ID: {playerId}.");
+            throw new KeyNotFoundException($"Player not found.");
         }
 
         var history = await _context.InventoryHistories
@@ -101,13 +101,12 @@ public class PlayerService
             {
                 Id = h.Id,
                 ItemId = h.ItemId,
-                ItemName = h.Item != null ? h.Item.Name : "Unknown itemName",
-                ItemType = h.Item != null ? h.Item.Type.ToString() : "Unknown itemType",
+                ItemName = h.Item != null ? h.Item.Name : string.Empty,
+                ItemType = h.Item != null ? h.Item.Type.ToString() : string.Empty,
                 QuantityChanged = h.QuantityChanged,                
                 Operation = h.OperationType.ToString(),
                 Timestamp = h.Timestamp
-            })
-        .ToListAsync(cancellationToken);
+            }).ToListAsync(cancellationToken);
 
         return history;
     }

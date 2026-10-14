@@ -17,15 +17,15 @@ public class MetadataController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<MetadataDto>> GetGameBalance()
     {
-        var config = await _metadataService.GetMetadataAsync();
-        return Ok(config);
+        var metadata = await _metadataService.GetMetadataAsync();
+        return Ok(metadata);
     }
 
     [HttpGet("AsText")]
     [Produces("text/plain")]
     public async Task<string> GetGameBalanceAsText()
     {
-        var config = await _metadataService.GetMetadataAsync();
-        return config.FormatedBalanceMessage;
+        var text = await _metadataService.GetMetadataAsTextAsync();
+        return text;
     }
 }

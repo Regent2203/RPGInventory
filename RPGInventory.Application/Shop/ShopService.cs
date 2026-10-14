@@ -42,7 +42,7 @@ public class ShopService
 
             if (currentAmount < totalRequired)
             {
-                var currencyName = price.CurrencyItem?.Name ?? $"[ItemId = {price.CurrencyItemId}]";
+                var currencyName = price.CurrencyItem?.Name ?? string.Empty;
                 throw new InvalidOperationException($"Not enough {currencyName} for buying {itemToBuy.Name}. Required: {totalRequired}, currently: {currentAmount}.");
             }
         }
@@ -69,7 +69,7 @@ public class ShopService
             updatedItemsDto.Add(new UpdatedItemDto
             {
                 ItemId = price.CurrencyItemId,
-                ItemName = playerCurrency.Item?.Name ?? $"[ItemId = {price.CurrencyItemId}]",
+                ItemName = playerCurrency.Item?.Name ?? string.Empty,
                 NewQuantity = playerCurrency.Quantity
             });
 
@@ -209,7 +209,7 @@ public class ShopService
             updatedItemsDto.Add(new UpdatedItemDto
             {
                 ItemId = price.CurrencyItemId,
-                ItemName = price.CurrencyItem?.Name ?? $"[ItemId = {price.CurrencyItemId}]",
+                ItemName = price.CurrencyItem?.Name ?? string.Empty,
                 NewQuantity = currencyInInventory.Quantity
             });
         }

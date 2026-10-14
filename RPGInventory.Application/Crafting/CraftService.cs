@@ -38,7 +38,7 @@ public class CraftService
 
             if (playerItem == null || playerItem.Quantity < ingredient.Quantity)
             {
-                var itemName = ingredient.IngredientItem?.Name ?? $"ID {ingredient.IngredientItemId}";
+                var itemName = ingredient.IngredientItem?.Name ?? string.Empty;
                 throw new InvalidOperationException($"Not enough items for craft: {itemName}. Need: {ingredient.Quantity}.");
             }
         }

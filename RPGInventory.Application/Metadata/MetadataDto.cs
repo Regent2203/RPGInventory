@@ -2,7 +2,6 @@
 
 public class MetadataDto
 {
-    public string FormatedBalanceMessage { get; set; } = string.Empty;
     public List<MetadataItemDto> Items { get; set; } = new();
     public List<MetadataRecipeDto> Recipes { get; set; } = new();
 }

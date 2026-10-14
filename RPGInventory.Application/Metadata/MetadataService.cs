@@ -49,12 +49,23 @@ public class MetadataService
                     Quantity = ri.Quantity
                 }).ToList()
             })
-            .ToListAsync(cancellationToken);
+            .ToListAsync(cancellationToken);        
+
+        return new MetadataDto
+        {
+            Items = items,
+            Recipes = recipes
+        };
+    }
+
+    public async Task<string> GetMetadataAsTextAsync(CancellationToken cancellationToken = default)
+    {
+        var metadataDto = await GetMetadataAsync(cancellationToken);
 
         var sb = new StringBuilder();
 
         sb.AppendLine("=== Items (ID, Name, Type) ===");
-        foreach (var item in items)
+        foreach (var item in metadataDto.Items)
         {
             sb.AppendLine($"● [{item.Id}] {item.Name} ({item.Type})");
             if (item.Prices.Count != 0)
@@ -72,21 +83,17 @@ public class MetadataService
 
         sb.AppendLine();
         sb.AppendLine();
+
         sb.AppendLine("=== Craft Recipes (ID, ResultItemName, ResultItemQuantity) ===");
-        foreach (var recipe in recipes)
+        foreach (var recipe in metadataDto.Recipes)
         {
-            sb.AppendLine($"● [{recipe.RecipeId}] Recipe: create {recipe.ResultItemName} x{recipe.ResultQuantity}");
+            sb.AppendLine($"● [{recipe.RecipeId}] Recipe: {recipe.ResultItemName} x{recipe.ResultQuantity}");
             sb.Append("  Ingredients: ");
             var ingredientStrings = recipe.Ingredients.Select(ri => $"{ri.IngredientItemName} x{ri.Quantity}");
             sb.AppendLine(string.Join(", ", ingredientStrings));
             sb.AppendLine("----------------------------------------");
         }
 
-        return new MetadataDto
-        {
-            FormatedBalanceMessage = sb.ToString(),
-            Items = items,
-            Recipes = recipes
-        };
+        return sb.ToString();
     }
 }

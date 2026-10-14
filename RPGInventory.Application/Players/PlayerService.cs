@@ -99,7 +99,7 @@ public class PlayerService
                 ItemName = ii.Item?.Name ?? string.Empty,
                 ItemType = ii.Item?.Type.ToString() ?? string.Empty,
                 Quantity = ii.Quantity
-            }).ToList()
+            }).OrderBy(x => x.ItemId).ToList()
         };
     }
 
@@ -113,7 +113,6 @@ public class PlayerService
         foreach (var item in inventoryDto.Inventory)
         {
             sb.AppendLine($"● [{item.ItemId}] {item.ItemName} {item.Quantity}x");
-            //sb.AppendLine("----------------------------------------");
         }
 
         return sb.ToString();

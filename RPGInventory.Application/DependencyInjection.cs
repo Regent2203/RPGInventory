@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RPGInventory.Application.Crafting;
+using RPGInventory.Application.Metadata;
 using RPGInventory.Application.Players;
 using RPGInventory.Application.Shop;
 
@@ -12,6 +13,7 @@ public static class DependencyInjection
         services.AddScoped<PlayerService>();
         services.AddScoped<CraftService>();
         services.AddScoped<ShopService>();
+        services.AddScoped<MetadataService>();
 
         return services;
     }

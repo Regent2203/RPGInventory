@@ -195,8 +195,6 @@ public class ShopService
                     Quantity = totalPayout
                 };
                 _context.InventoryItems.Add(currencyInInventory);
-
-                //currencyInInventory.Item = price.CurrencyItem;
             }
 
             historyLogs.Add(new InventoryHistory

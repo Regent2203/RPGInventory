@@ -26,8 +26,8 @@ docker-compose up --build -d
 ## Testing the API
 Now you can try out the API methods via Swagger UI:
 
-1. Use `POST /api/Players/register` to register a player. Copy the generated player ID from the response body to use in subsequent requests (there is no authorization system in this demo project).
+1. Use `POST /api/Players/Register` to register a player. Copy the generated player ID from the response body to use in subsequent requests (there is no authorization system in this demo project).
 2. Use `GET /api/Metadata/AsText` to see all available items and craft recipes in a human-readable text format. (Use `GET /api/Metadata` to retrieve raw JSON for client integration.)
-3. Use `GET /api/Players/{id}/profile` to get player's profile and inventory info.
-4. Use `POST /api/Shop/buy`, `POST /api/Shop/sell`, and `POST /api/Craft` to modify the inventory state.
-5. Use `GET /api/Players/{id}/history` to get logs of all previous transactions and inventory modifications.
+3. Use `GET /api/Players/{id}/Inventory/AsText` to get player's inventory info in a human-readable text format. (Use `GET /api/Players/{id}/Inventory` to retrieve raw JSON for client integration.)
+4. Use `POST /api/Shop/Buy`, `POST /api/Shop/Sell`, and `POST /api/Craft` to modify the inventory state.
+5. Use `GET /api/Players/{id}/History` to get logs of all previous transactions and inventory modifications.

@@ -14,7 +14,7 @@ public class ShopController : ControllerBase
         _shopService = shopService;
     }
 
-    [HttpPost("buy")]
+    [HttpPost("Buy")]
     public async Task<ActionResult<TradeResponse>> Buy([FromBody] TradeRequest request)
     {
         try
@@ -32,7 +32,7 @@ public class ShopController : ControllerBase
         }
     }
 
-    [HttpPost("sell")]
+    [HttpPost("Sell")]
     public async Task<ActionResult<TradeResponse>> Sell([FromBody] TradeRequest request)
     {
         try

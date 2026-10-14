@@ -14,7 +14,7 @@ public class PlayersController : ControllerBase
         _playerService = playerService;
     }
 
-    [HttpPost("register")]
+    [HttpPost("Register")]
     public async Task<ActionResult<RegisterPlayerResponse>> Register([FromBody] RegisterPlayerRequest request)
     {
         try
@@ -28,7 +28,7 @@ public class PlayersController : ControllerBase
         }
     }
 
-    [HttpGet("{id:guid}/profile")]
+    [HttpGet("{id:guid}/Profile")]
     public async Task<ActionResult<PlayerProfileDto>> GetProfile(Guid id)
     {
         try
@@ -42,7 +42,36 @@ public class PlayersController : ControllerBase
         }
     }
 
-    [HttpGet("{id:guid}/history")]
+    [HttpGet("{id:guid}/Inventory")]
+    public async Task<ActionResult<PlayerProfileDto>> GetInventory(Guid id)
+    {
+        try
+        {
+            var profile = await _playerService.GetInventoryAsync(id);
+            return Ok(profile);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("{id:guid}/Inventory/AsText")]
+    [Produces("text/plain")]
+    public async Task<ActionResult<PlayerProfileDto>> GetInventoryAsText(Guid id)
+    {
+        try
+        {
+            var profile = await _playerService.GetInventoryAsTextAsync(id);
+            return Ok(profile);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("{id:guid}/History")]
     public async Task<ActionResult<List<InventoryHistoryDto>>> GetHistory(Guid id)
     {
         try

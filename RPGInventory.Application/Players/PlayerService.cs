@@ -2,6 +2,7 @@
 using RPGInventory.Application.Common.Interfaces;
 using RPGInventory.Domain.Definitions;
 using RPGInventory.Domain.Entities;
+using System.Text;
 
 namespace RPGInventory.Application.Players;
 
@@ -54,6 +55,7 @@ public class PlayerService
 
         return new RegisterPlayerResponse
         {
+            Message = $"Registration successful. Copy your ID: {newPlayer.Id}",
             PlayerId = newPlayer.Id,
             Username = newPlayer.Username,
             CreatedAt = newPlayer.CreatedAt
@@ -61,6 +63,23 @@ public class PlayerService
     }
 
     public async Task<PlayerProfileDto> GetProfileAsync(Guid playerId, CancellationToken cancellationToken = default)
+    {
+        var player = await _context.Players.FirstOrDefaultAsync(p => p.Id == playerId, cancellationToken);
+
+        if (player == null)
+        {
+            throw new KeyNotFoundException($"Player not found.");
+        }
+
+        return new PlayerProfileDto
+        {
+            PlayerId = player.Id,
+            Username = player.Username,
+            CreatedAt = player.CreatedAt,            
+        };
+    }
+
+    public async Task<PlayerInventoryDto> GetInventoryAsync(Guid playerId, CancellationToken cancellationToken = default)
     {
         var player = await _context.Players
             .Include(p => p.InventoryItems)
@@ -72,11 +91,8 @@ public class PlayerService
             throw new KeyNotFoundException($"Player not found.");
         }
 
-        return new PlayerProfileDto
+        return new PlayerInventoryDto
         {
-            PlayerId = player.Id,
-            Username = player.Username,
-            CreatedAt = player.CreatedAt,
             Inventory = player.InventoryItems.Select(ii => new PlayerInventoryItemDto
             {
                 ItemId = ii.ItemId,
@@ -85,6 +101,22 @@ public class PlayerService
                 Quantity = ii.Quantity
             }).ToList()
         };
+    }
+
+    public async Task<string> GetInventoryAsTextAsync(Guid playerId, CancellationToken cancellationToken = default)
+    {
+        var inventoryDto = await GetInventoryAsync(playerId, cancellationToken);
+
+        var sb = new StringBuilder();
+
+        sb.AppendLine("=== Inventory Items (ID, Name, Quantity) ===");
+        foreach (var item in inventoryDto.Inventory)
+        {
+            sb.AppendLine($"● [{item.ItemId}] {item.ItemName} {item.Quantity}x");
+            //sb.AppendLine("----------------------------------------");
+        }
+
+        return sb.ToString();
     }
 
     public async Task<List<InventoryHistoryDto>> GetHistoryAsync(Guid playerId, CancellationToken cancellationToken = default)

@@ -5,7 +5,8 @@ public enum ItemType
     Unassigned = 0,
     Currency = 1,
     Resource = 2,
-    Equipment = 3
+    Equipment = 3,
+    Special = 4,
 }
 
 public class Item

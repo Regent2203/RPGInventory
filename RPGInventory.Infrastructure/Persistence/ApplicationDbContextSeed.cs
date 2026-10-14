@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RPGInventory.Domain.Constants;
 using RPGInventory.Domain.Definitions;
 
 namespace RPGInventory.Infrastructure.Persistence;

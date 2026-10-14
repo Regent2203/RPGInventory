@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RPGInventory.Application.Common.Interfaces;
+using RPGInventory.Domain.Definitions;
 using RPGInventory.Domain.Entities;
 
 namespace RPGInventory.Application.Players;
@@ -29,19 +30,20 @@ public class PlayerService
 
         _context.Players.Add(newPlayer);
 
-        var startingResources = new List<InventoryItem>
-        {
-            new InventoryItem { Id = Guid.NewGuid(), PlayerId = newPlayer.Id, ItemId = 1, Quantity = 100 },
-            new InventoryItem { Id = Guid.NewGuid(), PlayerId = newPlayer.Id, ItemId = 2, Quantity = 10 }
-        };
-
-        _context.InventoryItems.AddRange(startingResources);
-
-        var historyLogs = startingResources.Select(resource => new InventoryHistory
+        var startingInventory = StartingItems.All.Select(config => new InventoryItem
         {
             PlayerId = newPlayer.Id,
-            ItemId = resource.ItemId,
-            QuantityChanged = resource.Quantity,
+            ItemId = config.ItemId,
+            Quantity = config.Quantity
+        }).ToList();
+
+        _context.InventoryItems.AddRange(startingInventory);
+
+        var historyLogs = startingInventory.Select(item => new InventoryHistory
+        {
+            PlayerId = newPlayer.Id,
+            ItemId = item.ItemId,
+            QuantityChanged = item.Quantity,
             OperationType = InventoryOperationType.Registration,
             Timestamp = DateTime.UtcNow
         });

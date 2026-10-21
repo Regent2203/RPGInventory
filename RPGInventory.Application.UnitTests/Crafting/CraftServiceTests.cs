@@ -34,8 +34,7 @@ public class CraftServiceTests
             Username = "Norm player",
             InventoryItems = new List<InventoryItem>
             {
-                new() { Id = Guid.NewGuid(), PlayerId = playerId, ItemId = GameItems.IronIngotId, Quantity = 2 },
-                new() { Id = Guid.NewGuid(), PlayerId = playerId, ItemId = GameItems.WoodId, Quantity = 10 }
+                new() { Id = Guid.NewGuid(), PlayerId = playerId, ItemId = GameItems.SteelIngotId, Quantity = 2 },
             }
         };
         context.Players.Add(player);
@@ -49,10 +48,7 @@ public class CraftServiceTests
         result.Should().NotBeNull();
         result.CraftedItemName.Should().Be(GameItems.Get(GameItems.SteelSwordId).Name);
 
-        var woodInDb = await context.InventoryItems.FirstOrDefaultAsync(ii => ii.PlayerId == playerId && ii.ItemId == GameItems.WoodId);
-        woodInDb!.Quantity.Should().Be(5);
-
-        var ingotsInDb = await context.InventoryItems.FirstOrDefaultAsync(ii => ii.PlayerId == playerId && ii.ItemId == GameItems.IronIngotId);
+        var ingotsInDb = await context.InventoryItems.FirstOrDefaultAsync(ii => ii.PlayerId == playerId && ii.ItemId == GameItems.SteelIngotId);
         ingotsInDb.Should().BeNull();
     }
 
@@ -84,6 +80,6 @@ public class CraftServiceTests
         Func<Task> act = async () => await sut.CraftAsync(request);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Not enough items for craft: Железный слиток. Need: 2.");
+            .WithMessage($"Not enough items for craft: {GameItems.Get(GameItems.SteelIngotId).Name}. Need: 2.");
     }
 }
